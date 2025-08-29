@@ -1,0 +1,63 @@
+ORDER COUNT
+Order_Count = COUNTROWS(Orders)
+
+
+AVERAGE RISK SCORE
+Avg_Risk_Score = AVERAGE(Suppliers[Risk_Score])
+
+
+AVERAGE DELAY DAYS
+Avg_Delay = AVERAGE(Shipments[Delay_Days])
+
+
+AVERAGE RELIABILITY RATING
+Avg_Reliability_Rating = AVERAGE(Suppliers[Reliability_Rating])
+
+
+PERCENTAGE OF LATE SHIPMENTS
+PCT_of_Late_Shipments = DIVIDE(
+    COUNTROWS(FILTER(Shipments, Shipments[Status] = "Delayed")),
+    COUNTROWS(Shipments)
+)
+
+
+
+COMPOSITE RISK SCORE
+Composite_Risk_Score = 
+0.4 * AVERAGE ( Suppliers[Risk_Score] ) +
+0.3 * AVERAGE ( Shipments[Delay_Days] ) +
+0.2 * DIVIDE (
+        COUNTROWS ( FILTER ( Returns, Returns[Reason] = "Damaged Item" ) ),
+        COUNTROWS ( Returns )
+    ) +
+0.1 * DIVIDE (
+        COUNTROWS ( FILTER ( Warehouses, Warehouses[Stock_Level] < Warehouses[Min_Threshold] ) ),
+        COUNTROWS ( Warehouses )
+    )
+
+
+STOCK STATUS
+Stock_Status = 
+IF( Warehouses[Stock_Level] < Warehouses[Min_Threshold], "Low Stock", "OK" )
+
+
+DEBUGGING CHALLENGES
+1.	Late Shipments Formula - Incorrect 
+Wrong DAX
+LateShipmentPct = COUNTROWS(Shipments[Status] = "Delayed") / COUNTROWS(Shipments)
+
+Correct DAX
+LateShipmentPct =
+DIVIDE(
+    COUNTROWS(FILTER(Shipments, Shipments[Status] = "Delayed")),
+    COUNTROWS(Shipments)
+)
+
+
+
+
+2.	Incorrect Relationship
+Orders linked to Shipments via Warehouse_ID - This is wrong approach
+Order and Shipment must be connected by Order_ID by One to Many Cardinality
+
+
